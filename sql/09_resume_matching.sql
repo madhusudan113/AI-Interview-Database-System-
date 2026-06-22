@@ -1,12 +1,13 @@
-create or replace function get_candidate_rank(p_candidate_id number)
-return number
+
+create or replace function resume_skill_match(p_candidate_id number,p_keyword varchar2)
+return varchar2
 as
-v_rank number;
+v_resume clob;
 begin
-select ranking into v_rank from(select candidate_id,rank() over(order by final_score desc) ranking from interviews ) where candidate_id=p_candidate_id;
-return v_rank;
-end;
-/
-
-
-select get_candidate_rank(1)from dual;
+select lower(resume_text) into v_resume from candidates where candidate_id=p_candidate_id;
+if instr(v_resume,lower(p_keyword)) > 0 then
+return 'match found';
+else
+return 'skill missing';
+end if;
+end ;
