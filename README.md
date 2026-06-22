@@ -2,119 +2,347 @@
 
 ## Overview
 
-AI Interview Database System is a SQL & PL/SQL based recruitment analytics platform that helps organizations:
+Enterprise-grade AI Interview Database System built using Oracle SQL and PL/SQL to automate candidate evaluation, interview analytics, fraud detection, hiring prediction, and skill gap analysis.
 
-- Store candidate interview data
-- Rank candidates automatically
-- Detect interview fraud
-- Analyze hiring trends
-- Identify skill gaps
-- Generate interview reports
-- Automate notifications
+The system helps organizations manage interview processes, rank candidates, identify suspicious interview behavior, generate AI-driven feedback, analyze skill gaps, and support data-driven hiring decisions.
 
----
+![Oracle](https://img.shields.io/badge/Oracle-SQL-red)
 
-## Business Problem
+![PLSQL](https://img.shields.io/badge/PLSQL-Developer-blue)
 
-Recruitment teams conduct thousands of interviews.
+![AI Analytics](https://img.shields.io/badge/AI-Interview_Analytics-green)
 
-Challenges:
-
-- Manual candidate evaluation
-- Fraud during online interviews
-- Lack of analytics
-- No skill-gap identification
-- Slow hiring decisions
-
-This project solves these challenges using SQL and PL/SQL.
-
----
-
-## Technologies Used
-
-- Oracle Database
-- SQL
-- PL/SQL
-- Triggers
-- Procedures
-- Functions
-- Views
-- Scheduler Jobs
-- Window Functions
-- Indexes
-- Partitions
-
----
-
-## Database Design
-
-### Tables
-
-1. Candidates
-2. Interviewers
-3. Interviews
-4. Fraud Logs
-5. Job Required Skills
-6. Skill Gap Analysis
+![Status](https://img.shields.io/badge/Project-Complete-success)
 
 ---
 
 ## Features
 
-### Candidate Ranking
+✔ Candidate Management System
 
-Ranks candidates based on technical scores.
+✔ Interview Scheduling & Tracking
 
-### Fraud Detection
+✔ AI Feedback Generator
 
-Detects:
+✔ Candidate Ranking Engine
 
-- Multiple login attempts
-- Suspicious interview activity
-- Unusual behavior
+✔ Final Score Calculation
 
-### Skill Gap Analysis
+✔ Hiring Prediction Model
 
-Compares candidate skills against job requirements.
+✔ Fraud Detection Engine
 
-### Hiring Analytics
+✔ Resume Keyword Matching
 
-Provides:
+✔ Skill Gap Analysis
 
-- Monthly hiring trends
-- Top candidates
-- Average skill scores
+✔ AI Recommendation Engine
 
-### Automated Notifications
+✔ Interview Question Analytics
 
-Scheduler jobs send reports automatically.
+✔ Notification System
+
+✔ Audit Logging
+
+✔ Materialized Views
+
+✔ Dashboard Reporting
+
+✔ Data Warehouse Design
+
+✔ Scheduler Jobs Automation
+
+✔ Index Optimization
+
+✔ Partitioned Tables
+
+---
+
+## Technology Stack
+
+* Oracle Database
+* SQL
+* PL/SQL
+* Triggers
+* Functions
+* Stored Procedures
+* DBMS Scheduler
+* Materialized Views
+* Indexing
+* Partitioning
+* Data Warehouse Concepts
+
+---
+
+## Business Problem
+
+Recruitment teams often struggle with:
+
+* Manual candidate evaluation
+* Lack of standardized scoring
+* Difficulty identifying top talent
+* Interview fraud and cheating
+* Missing skill analysis
+* Delayed feedback generation
+* Lack of centralized analytics
+
+This system solves these challenges through automation, analytics, and AI-driven recommendations.
 
 ---
 
 ## Project Architecture
 
-Candidate
-    |
-Interview
-    |
-Oracle Database
-    |
-PL/SQL Engine
-    |
-Fraud Detection
-    |
-Analytics Layer
-    |
-Reports & Notifications
+![Architecture Diagram](docs/Architecture_Diagram.png)
+
+
+
 
 ---
 
-## Sample Queries
+## ER Diagram
 
-### Top Candidates
+![ER Diagram](docs/ER_Diagram.png)
+
+
+---
+
+## Database Modules
+
+### Candidate Module
+
+Stores:
+
+* Candidate Information
+* Resume Data
+* Skills
+* Experience
+
+### Interview Module
+
+Stores:
+
+* Interview Scores
+* Interview Mode
+* Interview Status
+* AI Feedback
+
+### Fraud Detection Module
+
+Detects:
+
+* High Technical Score + Low Confidence
+* Suspicious Interview Behavior
+* Potential Cheating Patterns
+
+### Analytics Module
+
+Provides:
+
+* Candidate Ranking
+* Average Skill Scores
+* Hiring Trends
+* Interview Performance Metrics
+
+---
+
+## AI Feedback Engine
+
+Automatically generates feedback based on:
+
+* Technical Score
+* Communication Score
+* Confidence Score
+
+### Example
+
+| Score Range | Feedback            |
+| ----------- | ------------------- |
+| 85+         | Excellent Candidate |
+| 70-84       | Good Candidate      |
+| Below 70    | Needs Improvement   |
+
+---
+
+## Hiring Prediction Model
+
+### Prediction Rules
+
+| Final Score | Prediction  |
+| ----------- | ----------- |
+| 85+         | Selected    |
+| 70-84       | Shortlisted |
+| Below 70    | Reject      |
+
+---
+
+## Fraud Detection Rules
+
+| Rule                            | Risk Indicator |
+| ------------------------------- | -------------- |
+| Technical > 90                  | Suspicious     |
+| Confidence < 30                 | Suspicious     |
+| High Technical + Low Confidence | Fraud Alert    |
+| Multiple Fraud Logs             | High Risk      |
+
+---
+
+## Skill Gap Analysis
+
+Compares:
+
+Candidate Resume Skills
+
+VS
+
+Job Required Skills
+
+Generates:
+
+* Missing Skills
+* Learning Recommendations
+* Training Suggestions
+
+### Example
+
+| Required Skill | Candidate Has | Result    |
+| -------------- | ------------- | --------- |
+| SQL            | Yes           | Match     |
+| Python         | Yes           | Match     |
+| Databricks     | No            | Skill Gap |
+
+---
+
+## Candidate Recommendation Engine
+
+Generates recommendations such as:
+
+* Suitable for Senior Roles
+* Suitable for Mid-Level Roles
+* Requires Technical Training
+* Recommended Learning Path
+
+---
+
+## Interview Question Analytics
+
+Analyzes:
+
+* Question-wise Performance
+* Average Score Per Question
+* Difficult Questions
+* Candidate Weak Areas
+
+---
+
+## Dashboard Queries
+
+### Top Ranked Candidates
 
 ```sql
 SELECT candidate_id,
-technical_score,
-RANK() OVER(ORDER BY technical_score DESC)
+       final_score,
+       RANK() OVER(ORDER BY final_score DESC)
 FROM interviews;
+```
+
+### Fraud Reports
+
+```sql
+SELECT *
+FROM fraud_logs;
+```
+
+### Skill Gap Reports
+
+```sql
+SELECT *
+FROM skill_gap_analysis;
+```
+
+### HR Dashboard
+
+```sql
+SELECT *
+FROM vw_hr_dashboard;
+```
+
+---
+
+## Data Warehouse Design
+
+### Fact Table
+
+* FACT_INTERVIEW
+
+### Dimension Tables
+
+* DIM_CANDIDATE
+* DIM_INTERVIEWER
+* DIM_SKILL
+* DIM_DATE
+
+### Benefits
+
+* Faster Analytics
+* Historical Reporting
+* Business Intelligence Support
+
+---
+
+## Performance Optimization
+
+### Indexes
+
+* Candidate Skill Index
+* Interview Date Index
+* Final Score Index
+
+### Partitioning
+
+Interview history partitioned by year:
+
+* 2025
+* 2026
+* Future Years
+
+### Materialized Views
+
+Precomputed reporting for:
+
+* Monthly Interview Trends
+* Average Scores
+* Candidate Statistics
+
+---
+
+## Scheduler Jobs
+
+Automated Jobs:
+
+✔ Daily Interview Reports
+
+✔ Notification Processing
+
+✔ Analytics Refresh
+
+✔ Materialized View Refresh
+
+---
+
+## Project Flow
+
+![project_flow](docs/project_flow.png)
+
+
+---
+
+## Author
+
+### Madhusudan
+
+Data Engineer | SQL Developer | PLSQL Developer
+
+
+
+---
+
