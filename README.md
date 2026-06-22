@@ -92,7 +92,7 @@ This system solves these challenges through automation, analytics, and AI-driven
 
 ## Project Architecture
 
-![Architecture Diagram](docs/Architecture_Diagram.png)
+![Architecture Diagram](docs/architecture_diagram.png)
 
 
 
@@ -101,7 +101,7 @@ This system solves these challenges through automation, analytics, and AI-driven
 
 ## ER Diagram
 
-![ER Diagram](docs/ER_Diagram.png)
+![ER Diagram](docs/er_diagram.png)
 
 
 ---
