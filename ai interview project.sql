@@ -1,146 +1,91 @@
---1.PROJECT OVERVIEW
---===================================
---Project Name(AI INTERVIEW DATABASE SYSTEM)
-------------------------------------------------
---GOAL:-
------
---Build system that:-
---	Stores candidate interview data
---	Analyzes performance
---	Detects cheating/fraud
---	Ranks candidates
---	ai feedback	
---	Sends automated notifications
+-------------------------------------------------
+-- AI INTERVIEW DATABASE SYSTEM
+-- DATABASE DESIGN
+-------------------------------------------------
 
-
-
---2.REAL WORLD USE CASE
---=================================
---Companies like:-
---	Linkedin
---	Naukri
---	Indeed
---	Wellfound
-
-
-
---3.TECHNOLOGIES USED
---=====================================
---	SQL- data analysis
---	PLSQL- automation
---	ORACLE DB- database
---	TRIGGERS- fraud detection
---	PROCEDURES- scoring
---	FUNCTIONS- ranking
---	VIEWS- analytics
---	SCHEDULAR JOBS- email automation
---	INDEXING- performance
---	PARTITIONS- big data handling
-
-
-
---4.SYSTEM ARCHITECTURE
---==========================================
---	CANDIDATE
---		|
---	INTERVIEW TABLE
---		|
---	DATABASE TABLES
---		|
---	PLSQL ENGINE
---		|
---	ANALYTICS + FRAUD DETECTION
---		|
---	REPORTS + RANKING + NOTIFICATIONS
-
-
-
---5.DATABASE DESIGN(tables creation)
---=====================================
---TABLE 1 - CANDIDATES
---=====================
 create table candidates(
 candidate_id number primary key,
 full_name varchar2(100),
 email varchar2(100),
 phone varchar2(20),
 experience_years number,
-primary_skill varchar2(50),
+primary_skill varchar2(100),
 resume_text clob,
-created_date date default sysdate);
+created_date date default sysdate
+);
 
+create table candidate_skills(
+candidate_skill_id number primary key,
+candidate_id number,
+skill_name varchar2(100),
+proficiency_level varchar2(50),
+constraint fk_candidate_skill foreign key(candidate_id) reFERENCES candidates(candidate_id)
+);
 
-insert into candidates values(1,'madhu sudan','madhu@gmail.com','9999999999',2,'pyspark','experienced in spark sql and etl',sysdate);
-
-
-
---TABLE 2 - INTERVIEWERS
---=================================
 create table interviewers(
 interviewer_id number primary key,
 interviewer_name varchar2(100),
-department varchar2(50),
-experience_years number );
+department varchar2(100),
+experience_years number
+);
 
-
-insert into interviewers values(101,'ravi kumar','data engineering',10);
-
-
-
---TABLE 3 - INTERVIEWS
---========================
 create table interviews(
 interview_id number primary key,
 candidate_id number,
 interviewer_id number,
 interview_date date,
 interview_mode varchar2(30),
-interview_status varchar2(30),
-
-communication_score number,
+status varchar2(30),
 technical_score number,
+communication_score number,
 confidence_score number,
-ai_feedback,
-
-foreign key(candidate_id) references candidates(candidate_id),
-foreign key(interviewer_id) references interviewers(interviewer_id)
+final_score number,
+fraud_score number,
+hiring_prediction varchar2(30),
+ai_feedback clob,
+constraint fk_candidate foreign key(candidate_id)references candidates(candidate_id),
+constraint fk_interviewer foreign key(interviewer_id) references interviewers(interviewer_id)
 );
 
+create table interview_questions(
+question_id number primary key,
+interview_id number,
+question_text varchar2(1000),
+candidate_answer clob,
+score number,
+foreign key(interview_id) references interviews(interview_id)
+);
 
-insert into interviews values(1001,1,101,sysdate,'online','completed',85,92,80,'excellent in pyspark and sql' );
-
-
-
---TABLE 4 - FRAUD DETECTION LOGS
---==================================
 create table fraud_logs(
 fraud_id number primary key,
 interview_id number,
-fraud_type varchar2(100),
+fraud_type varchar2(200),
 fraud_timestamp date default sysdate,
 remarks varchar2(500)
 );
 
+create table notifications(
+notification_id number primary key,
+candidate_id number,
+message varchar2(500),
+status varchar2(30),
+created_date date default sysdate
+);
 
+create table audit_logs(
+audit_id number primary key,
+table_name varchar2(100),
+operation varchar2(50),
+username varchar2(100),
+action_date date default sysdate
+);
 
---TABLE 5 - REQUIRED SKILL TABLE
---==================================
 create table job_required_skills(
 skill_id number primary key,
 job_role varchar2(100),
-skill_name varchar2(100));
+skill_name varchar2(100)
+);
 
-
-insert into job_required_skills values(1,'data engineer','sql');
-insert into job_required_skills values(2,'data engineer','pyspark');
-insert into job_required_skills vlaues(3,'data engineer','databricks');
-insert into job_required_skills values(4,'data engineer','aws');
-insert into job_required_skills values(5,'data engineer','python');
-
-
-
---TABLE 6 -SKILL GAP ANALYSIS
---==================================
 create table skill_gap_analysis(
 analysis_id number primary key,
 candidate_id number,
@@ -148,247 +93,350 @@ missing_skill varchar2(100),
 recommendation varchar2(500)
 );
 
-
-create sequence skill_gap_seq 
-start with 1
-increment by 1;
-
-
-
-
---6.ACTUAL WORK USING SQL QUERIES
---==================================
---A.FIND THE TOP CANDIDATE RANKING
---------------------------------
-select candidate_id,technial_score,rank() over(order by technical_score desc) rnk from interviews;
+create table ai_recommendations(
+recommendation_id number primary key,
+candidate_id number,
+recommendation_text varchar2(1000),
+generated_date date default sysdate
+);
 
 
---B.FIND THE SKILL-WISE AVERAGE SCORE
--------------------------------------
-select c.primary_skill,avg(i.technical_score) avg_score from candidate c inner join interviews i on c.candidate_id=i.candidate_id group by c.primary_skill;
+-- SEQUECES
+--------------------
+create sequence candidate_seq start with 1;
+create sequence interviewer_seq start with 100;
+create sequence interview_seq start with 1000;
+create sequence fraud_seq start with 1;
+create sequence notification_seq start with 1;
+create sequence audit_seq start with 1;
+create sequence skill_gap_seq start with 1;
+create sequence recommendation_seq start with 1;
 
 
---C.FIND AND DETECT LOW PERFORMANCE
-------------------------------------
-select candidate_id,technical_score from interviews where technical_score<40;
+-- SAMPLE DATA
+------------------
+insert into candidates values(candidate_seq.nextval,'madhu sudan','madhu@gmail.com','9999999999',2,'data engineering','experience in sql pyspark python databricks azure',sysdate);
 
 
---D.MONTHLY HIRING TREND
-------------------------------
-select to_char(interview_date,'mon-yyyy') month_name,count(*) total_interviews
-from interviews group by to_char(interview_date,'mon-yyyy');
+insert into candidate_skills values(1,1,'sql','advanced');
+insert into candidate_skills values(2,1,'pyspark','advanced');
+insert into candidate_skills values(3,1,'databricks','intermediate');
 
 
---E.SCORE ANALYSIS 
--------------------------
-with score_analysis as(
-select candidate_id,
-technical_score,communication_score,confidence_score
-from interviews)
-select *from score_analysis where technical_score>80;
+insert into interviewers values(interviewer_seq.nextval,'ravi kumar','data engineering',10);
 
 
---F.PARTITION ANALYTICS QUERy(avg skill score)
--------------------------------
-select candidate_id,primary_skill,technical_score,avg(technical_score) over(partition by primary_skill)as avg_skill_score from candidates c
-inner join interviews i on c.candidate_id=i.candidate_id;
+insert into interviews(interview_id,candidate_id,interviewer_id,interview_date,interview_mode,status,technical_score,communication_score,confidence_score)
+values(interview_seq.nextval,1,100,sysdate,'online','completed',92,85,80);
 
 
---7.PLSQL DEVELOPMENT
---============================
---AUTOMATED CANDIDATE SCORING
------------------------------------
-create or replace procedure calculate_final_score(p_interview_id number)
-as
-v_total_score number;
-begin
-select (technial_score*0.6)+(communication_score*0.2)+(confidence_score*0.2)
-into v_total_score from interviews where interview_id=p_interview_id;
-
-dbms_output.put_line('final  score:- '||v_total_score);
-end;
-
-exec calculate_final_score(1001);
+insert into job_required_skills values(1,'data engineer','sql');
+insert into job_required_skills values(2,'data engineer','python');
+insert into job_required_skills values(3,'data engineer','databricks');
+COMMIT;
 
 
 
---8.FRAUD DETECTION SYSTEM
-======================================
---CREATE FRAUD DETECTION TRIGGERS
----------------------------------------
---(if confidence score too low but technical score too high then possible cheating)
-
-create or replace trigger fraud_detection_trigger
+-- PROCEDURE
+-- =================
+-- fraud detection engine
+-- =======================
+create or replace trigger fraud_detection
 after insert or update on interviews
 for each row
 begin
-if :new.technical_score>90 and :new.confidence_score<30 then
-	insert into fraud_logs(fraud_id,interview_id,fraud_type,remarks)values(fraud_seq.nextval,:new.interview_id,'possible online assitence','high technical score with low confidence');
+if :new.technical_score>90 and :new.confidence_score<30
+then
+insert into fraud_logs values(fraud_seq.nextval,:new.interview_id,'possible cheating',sysdate,'high technical low confidence');
 end if;
 end;
+/
 
-create sequence fraud_seq 
-start with 1 
-increment by 1;
+-- audit logging system
+-- ============================
+create or replace trigger audit_interview
+after insert or update or delete on interviews
+begin
+insert into audit_logs values(audit_seq.nextval,'interviews',ora_sysevent,user,sysdate);
+end;
+/
 
+-- PACKAGE_INTERVIEW_ENGINE
+-- ===========================
+-- package specification
+-------------------------
+create or replace package pkg_interview_engine
+as
+procedure calculate_score(p_interview_id number);
+procedure generate_ai_feedback(p_interview_id number);
+procedure predict_candidate(p_interview_id number);
+function get_candidate_rank(p_candidate_id number)
+return number;
+procedure generate_candidate_recommendation(p_candidate_id number);
+end pkg_interview_engine;
+/
 
+-- package body
+----------------------
 
---9.RESUME KEYWORD ANALYSIS
---=============================
---AI RESUME SCANNING(find candidates having 'pyspark')
-----------------------------------------------------
-select candidate_id,full_name from candidates where lower(resume_text) like '%pyspark%';
+create or replace package body pkg_interview_engine
+as
 
---FIND MISSING SKILLS
---------------------------------
-select c.full_name,s.missing_skill from candidate c join skill_gap_analysis on c.candidate_id=s.candidate_id where s.missing_skill='databricks';
+-- final score
 
+procedure calculate_score(p_interview_id number)
+as
+v_score number;
+begin
+select technical_score*0.6 + communication_score*0.2 +confidence_score*0.2 into v_score from interviews where interview_id=p_interview_id;
+update interviews set final_score=v_score where interview_id=p_interview_id;
+end calculate_score;
 
+-- ai feedback
 
---10.AUTOMATED RANKING SYSTEM
---============================================
-create or replace function get_candidate_rank(p_candidate_id number)
+procedure generate_ai_feedback(p_interview_id number)
+as
+v_score number;
+v_feedback clob;
+begin
+select final_score into v_score from interviews where interview_id=p_interview_id;
+if v_score >=85 then
+v_feedback := 'excellent candidate. strong technical skills.';
+elsif v_score >=70 then
+v_feedback := 'good candidate. minor improvements required.';
+else
+v_feedback := 'needs improvement and training.';
+end if;
+
+update interviews set ai_feedback=v_feedback where interview_id=p_interview_id;
+end generate_ai_feedback;
+
+-- hiring prediction
+
+procedure predict_candidate(p_interview_id number)
+as
+v_score number;
+begin
+select final_score into v_score from interviews where interview_id=p_interview_id;
+if v_score >=85 then
+update interviews set hiring_prediction='selected' where interview_id=p_interview_id;
+elsif v_score >=70 then
+update interviews set hiring_prediction='shortlist' where interview_id=p_interview_id;
+else
+update interviews set hiring_prediction='reject' where interview_id=p_interview_id;
+end if;
+end predict_candidate;
+
+-- ranking
+
+function get_candidate_rank(p_candidate_id number)
 return number
 as
 v_rank number;
 begin
-select ranking into v_rank from (
-select candidate_id,rank() over(order by technial_score desc)ranking from interviews)where candidate_id=p_candidate_id;
+select ranking into v_rank from(select candidate_id,rank() over(order by final_score desc) ranking from interviews) where candidate_id=p_candidate_id;
 return v_rank;
-end;
+end get_candidate_rank;
 
-select get_candidate_rank(1) from dual;
+-- recommendation engine
 
-
-
---11.AUTOMATED EMAIL NOTIFICATIONS(by using dbms_scheduler)
---=========================================================
-begin
-dbms_scheduler.create_job(
-job_name=>'interview_report_job',
-job_type=>'plsql_block',
-job_action=>'begin 
-				dbms_output.put_line('sending interviews reports');
-			end;',
-start_date=>systimestamp,
-repeat_interval=>'freq=daily',
-enabled=>TRUE
-);
-end;
-
-
-
---12.GENERATED AI FEEDBACK
---===============================
-created or replace procedure generate_ai_feedback(p_interview_id number)
+procedure generate_candidate_recommendation(p_candidate_id number)
 as
-v_tech number;
-v_comm number;
-v_conf number;
-v_feedback clob;
+v_score number;
 begin
-select technial_score,communication_score,confidence_score into v_tech,v_comm,v_conf from interviews where interview_id=p_interview_id;
---technical analysis
-if v_tech>=90 then
-	v_feedback:='excellent technical knowledge. ';
-elsif v_tech>=70 then
-	v_feedback:='good technical knowledge. ';
-elsif v_tech >=50 then
-	v_feedback:='average technincal knowledge. ';
+select avg(final_score) into v_score from interviews where candidate_id=p_candidate_id;
+if v_score >=85 then
+insert into ai_recommendations values(recommendation_seq.nextval,p_candidate_id,'recommended for senior technical roles',sysdate);
+elsif v_score >=70 then
+insert into ai_recommendations values(recommendation_seq.nextval,p_candidate_id,'recommended after skill improvement',sysdate);
 else
-	v_feedback:='needs technical improvement. ';
+insert into ai_recommendations values(recommendation_seq.nextval,p_candidate_id,'need technical training',sysdate);
 end if;
+end generate_candidate_recommendation;
 
---confident  analysis
-if v_conf >=90 then
-	v_feedback:=v_feedback||'highly confident. ';
-elsif v_conf>=70 then
-	v_feedback:=v_feedback||'confident.';
-else 
-	v_feedback:=v_feedback||'needs confidence building.';
-end if;
-
---communication analysis
-if v_comm>=90 then
-	v_feedback:=v_feedback||'excellent communication.';
-elsif v_comm>=70 then
-	v_feedback:=v_feedback||'good communication.';
-else
-	v_feedback:=v_feedback||'needs communication improvement.';
-end if;
-
-update interviews set ai_feedback=v_feedback where interview_id=p_interview_id;
-commit;
-end;
+end pkg_interview_engine;
+/
+execute
+-------------------
+-- calculate score
+exec pkg_interview_engine.calculate_score(1000);
+-- generate ai feedback
+exec pkg_interview_engine.generate_ai_feedback(1000);
+-- predict hiring
+exec pkg_interview_engine.predict_candidate(1000);
+-- generate recommendation
+exec pkg_interview_engine.generate_candidate_recommendation(1);
+-- ranking
+select pkg_interview_engine.get_candidate_rank(1) from dual;
 
 
---13.ANALYSE SKILLS GAP
---=========================
-create or replace procedure analyze_skill_gap(p_candidate_id number,p_job_role varchar2)
+
+
+-- PACKAGE SKILL ENGINE
+-- ========================
+-- package specification
+-----------------------
+create or replace package pkg_skill_engine
+as
+procedure analyze_skill_gap(p_candidate_id number,p_job_role varchar2);
+function resume_skill_match(p_candidate_id number,p_keyword varchar)
+return varchar2;
+end pkg_skill_engine;
+/
+
+-- package body
+-----------------
+
+create or replace package body pkg_skill_engine
+as
+procedure analyze_skill_gap(p_candidate_id number,p_job_role varchar2)
 as
 v_resume clob;
 begin
-select lower(resume_text) into v_resume from candidates where candidate_id=p_candidaate_id;
-for i in (select skill_name from job_required_skills where upper(job_role)=upper(p_job_role)
+select lower(resume_text) into v_resume from candidates where candidate_id=p_candidate_id;
+for skill in(select skill_name from job_required_skills where lower(job_role)=lower(p_job_role))
 loop
-if instr(v_resume,lower(i.skill_name)=0 then
-insert into skill_gap_analysis(analysis_id,candidate_id,missing_skill,recommendation) values(skill_gap_seq.nextval,p_canidate_id,i.skill_name,'recommended training for '||i.skill_name);
+if instr(v_resume,lower(skill.skill_name))=0 then
+insert into skill_gap_analysis values(skill_gap_seq.nextval,p_candidate_id,skill.skill_name,'recommended training for '||skill.skill_name);
 end if;
 end loop;
-commit;
-end;
+end analyze_skill_gap;
 
-exec analyze_skill_gap(1,'data engineer');
+function resume_skill_match(p_candidate_id number,p_keyword varchar2)
+return varchar2
+as
+v_resume clob;
+begin
+select lower(resume_text) into v_resume from candidates where candidate_id=p_candidate_id;
+if instr(v_resume,lower(p_keyword)) > 0 then
+return 'match found';
+else
+return 'skill missing';
+end if;
+end resume_skill_match;
+
+end pkg_skill_engine;
+/
+
+--execute
+-----------------------
+-- skill gap analysis
+exec pkg_skill_engine.analyze_skill_gap(1,'data engineer');
+
+-- resume matching
+select pkg_skill_engine.resume_skill_match(1,'python') from dual;
 
 
 
---14.CREATE HR DASHBDOARD VIEWS
---=================================
-create or replace view vw_interview_dashboard as
-select c.full_name,c.primary_skill,
-i.technial_score,i.communication_score,i.confidence_score,
-(i.technial_score + i.communication_score + i.confidence_score) total_score
-from candidate c inner join interviews i on c.candidate_id=i.candidate_id ;
+-- package notification engine
+-- =============================
+--package specification
+
+create or replace package pkg_notification_engine
+as
+procedure send_notification(p_candidate_id number,p_message varchar2);
+end pkg_notification_engine;
+/
+
+--package body
+create or replace package body pkg_notification_engine
+as
+procedure send_notification(p_candidate_id number,p_message varchar2)
+as
+begin
+insert into notifications values(notification_seq.nextval,p_candidate_id,p_message,'pending',sysdate);
+end send_notification;
+end pkg_notification_engine;
+/
+
+--execute
+-------------------
+-- notification
+exec pkg_notification_engine.send_notification(1,'interview result generated');
+
+-- interview question analytics
+-- ==============================
+create view vw_question_analysis as
+select question_text,avg(score) average_score,count(*) attemptsfrom interview_questions group by question_text;
+
+-- data warehouse design
+-- =======================
+--               DIM_CANDIDATE
+--                     |
+--                     |
+-- DIM_DATE ---- FACT_INTERVIEW ---- DIM_SKILL
+--                     |
+--                     |
+--              DIM_INTERVIEWER
+			 
+
+
+create table dim_candidate as
+select candidate_id,full_name,experience_years from candidates;
+
+create table dim_interviewer as
+select * from interviewers;
+
+create table fact_interview as
+select interview_id,candidate_id,interviewer_id,final_score,technical_score,communication_score from interviews;
 
 
 
---15.INDEXING OR PERFORMANCE AND OPTIMIZATION
---===========================================
---A.CREATE INDEXES(used to increase the peformance )
--------------------------
-create index idx_candidate_skill on candidate(primary_skill);
-create index idx_interview_date on interviews(interview_date);
+-- hr analytics dashboard view
+-- ====================================
+create or replace view vw_hr_dashboard
+as
+select c.full_name,c.primary_skill,i.final_score,i.hiring_prediction,i.ai_feedback,case
+when i.final_score>=85 then 'top talent'
+when i.final_score>=70 then 'good'
+else 'average'
+end candidate_category
+from candidates c join interviews i on c.candidate_id=i.candidate_id;
+
+select *from vw_hr_dashboard;
 
 
---B.CREATE PARTITIONS (used for large data optimization)
-------------------------------------------------------------
-create table interview_archive(
-interview_id number,interview_date date,technical_score number)
-partiton by range(interview_date) (
-partition p_2025 values less than (to_date('01-jan-2026','dd-mon-yyyy')),
-partition p_2026 values less than (to_date('01-jan-2027','dd-mon-yyyy'))
+-- materalized view
+-- =====================
+create materialized view mv_monthly_report
+refresh complete on demand
+as
+select to_char(interview_date,'mon-yyyy') month,count(*) total_interviews,avg(final_score) average_score from interviews
+group by to_char(interview_date,'mon-yyyy');
+
+
+-- partition table
+-- =====================
+create table interview_history(
+interview_id number,
+interview_date date,
+score number
+)
+partition by range(interview_date)(partition p2025 values less than(to_date('01-jan-2026','dd-mon-yyyy')),
+partition p2026 values less than(to_date('01-jan-2027','dd-mon-yyyy'))
 );
 
 
+-- index optimization
+============================
+create index idx_candidate_skill on candidates(primary_skill);
+create index idx_interview_score on interviews(final_score);
+create index idx_interview_date on interviews(interview_date);
 
---13.PROJECT FLOW
---========================
---	resume uploaded
---			|
---	candidate registered
---			|
---	interview scheduled
---			|
---	scores stored
---			|
---	plsql scoring engine
---			|
---	fraud detection trigger
---			|
---	analytics queries
---			|
---	ranking generated
---			|
---	dashboard reporting
---			|
---	email notications
+
+-- scheduler automation
+=========================
+begin
+dbms_scheduler.create_job(
+job_name=>'daily_interview_report',
+job_type=>'plsql_block',
+job_action=>'
+begin
+dbms_output.put_line(''daily interview report generated'');
+end;',
+start_date=>sysdate,
+repeat_interval=>'freq=daily',
+enabled=>true
+);
+end;
+/
